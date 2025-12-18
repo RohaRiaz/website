@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthShare - Command Center</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #fffef1;
+            color: #010000;
+            overflow-x: hidden;
+        }
+
+        .dashboard {
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Animated Background Grid */
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(1, 56, 51, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(1, 56, 51, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 2rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(1, 56, 51, 0.1);
+            background: rgba(255, 254, 241, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            height: 50px;
+            width: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #013833;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #013833;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(1, 56, 51, 0.05);
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(1.2);
+            }
+        }
+
+        /* Main Content */
+        .main-content {
+            position: relative;
+            z-index: 5;
+            padding: 3rem 4rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .hero-section {
+            margin-bottom: 3rem;
+        }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #013833;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            color: rgba(1, 56, 51, 0.7);
+            max-width: 700px;
+        }
+
+        /* Dashboard Modules Grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .module-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(1, 56, 51, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(1, 56, 51, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-8px);
+            border-color: #013833;
+            box-shadow: 0 20px 60px rgba(1, 56, 51, 0.15);
+        }
+
+        .module-card:hover::before {
+            opacity: 1;
+        }
+
+        .module-card.highlighted {
+            border-color: #013833;
+            background: rgba(1, 56, 51, 0.03);
+            box-shadow: 0 20px 60px rgba(1, 56, 51, 0.2), 0 0 0 4px rgba(1, 56, 51, 0.1);
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        .module-card.highlighted::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            bottom: -2px;
+            left: -2px;
+            background: linear-gradient(135deg, #013833, #00ff88);
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0.3;
+            filter: blur(10px);
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .module-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #013833, #025f56);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            box-shadow: 0 10px 30px rgba(1, 56, 51, 0.2);
+        }
+
+        .module-card h3 {
+            font-size: 1.4rem;
+            color: #013833;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        .module-card p {
+            color: rgba(1, 56, 51, 0.7);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(1, 56, 51, 0.1);
+        }
+
+        .stat {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #013833;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: rgba(1, 56, 51, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Data Visualization Panel */
+        .data-panel {
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(1, 56, 51, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .data-panel h2 {
+            font-size: 1.8rem;
+            color: #013833;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-end;
+            height: 200px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, #013833, #00ff88);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            animation: barGrow 1.5s ease-out;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        @keyframes barGrow {
+            from {
+                height: 0;
+            }
+        }
+
+        .chart-bar::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 600;
+            color: #013833;
+        }
+
+        .chart-label {
+            text-align: center;
+            margin-top: 1rem;
+            color: rgba(1, 56, 51, 0.7);
+            font-size: 0.85rem;
+        }
+
+        /* Cursor Highlight Effect */
+        .cursor-highlight {
+            display: none;
+        }
+
+        /* Holographic Elements */
+        .holo-element {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.1), transparent);
+            filter: blur(40px);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .holo-1 {
+            top: 10%;
+            right: 15%;
+            animation-delay: 0s;
+        }
+
+        .holo-2 {
+            bottom: 20%;
+            left: 10%;
+            animation-delay: 2s;
+        }
+
+        .holo-3 {
+            top: 50%;
+            right: 5%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.3;
+            }
+
+            50% {
+                transform: translateY(-30px) scale(1.1);
+                opacity: 0.6;
+            }
+        }
+
+        /* CTA Button */
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #013833, #025f56);
+            color: #fffef1;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(1, 56, 51, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(1, 56, 51, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 1.5rem 2rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding: 2rem;
+            }
+
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <div class="grid-background"></div>
+
+        <!-- Holographic Elements -->
+        <div class="holo-element holo-1"></div>
+        <div class="holo-element holo-2"></div>
+        <div class="holo-element holo-3"></div>
+
+        <!-- Header -->
+        <header>
+            <div class="logo-container">
+                <img src="https://i.postimg.cc/9fLzYgzX/123546.png" alt="HealthShare" class="logo">
+            </div>
+            <nav class="nav-links">
+                <a href="#partnerships">Partnerships</a>
+                <a href="#innovations">Innovations</a>
+                <a href="#investors">Investors</a>
+                <a href="#resources">Resources</a>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    System Active
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="hero-section">
+                <h1>Command Center</h1>
+                <p>Bridging science, capital, and policy to scale ethical innovations from lab to market</p>
+            </div>
+
+            <!-- Dashboard Modules -->
+            <div class="modules-grid">
+                <div class="module-card highlighted" id="resource-module">
+                    <div class="module-icon">💎</div>
+                    <h3>Resource Allocation</h3>
+                    <p>Strategic deployment of capital, expertise, and IP data to accelerate research innovation and
+                        startup growth.</p>
+                    <div class="module-stats">
+                        <div class="stat">
+                            <span class="stat-value">$42M</span>
+                            <span class="stat-label">Deployed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">156</span>
+                            <span class="stat-label">Projects</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">🔬</div>
+                    <h3>Clinical Validation</h3>
+                    <p>Comprehensive research scouting and evidence framework to validate breakthrough innovations.</p>
+                    <div class="module-stats">
+                        <div class="stat">
+                            <span class="stat-value">89%</span>
+                            <span class="stat-label">Success Rate</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">342</span>
+                            <span class="stat-label">Studies</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">⚖️</div>
+                    <h3>Regulatory Pathways</h3>
+                    <p>Navigate MDR, FDA compliance, and policy alignment with expert guidance and government
+                        partnerships.</p>
+                    <div class="module-stats">
+                        <div class="stat">
+                            <span class="stat-value">24</span>
+                            <span class="stat-label">Approvals</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">12</span>
+                            <span class="stat-label">Markets</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">📊</div>
+                    <h3>Investor Portal</h3>
+                    <p>Connect with impact funds, private equity, and strategic investors. Track equity positions and IP
+                        royalties.</p>
+                    <div class="module-stats">
+                        <div class="stat">
+                            <span class="stat-value">$180M</span>
+                            <span class="stat-label">AUM</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">67</span>
+                            <span class="stat-label">Partners</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">🎓</div>
+                    <h3>Innovation Programs</h3>
+                    <p>Host summits, workshops, and training programs to empower researchers and entrepreneurs.</p>
+                    <div class="module-stats">
+                        <div class="stat">
+                            <span class="stat-value">1,200</span>
+                            <span class="stat-label">Trained</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">38</span>
+                            <span class="stat-label">Events</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">🔐</div>
+                    <h3>IP Management</h3>
+                    <p>Patent acquisition, protection, and licensing services in partnership with specialized firms.</p>
+                    <div class="module-stats">
+                        <div class="stat">
+                            <span class="stat-value">456</span>
+                            <span class="stat-label">Patents</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">$8.2M</span>
+                            <span class="stat-label">Royalties</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Visualization -->
+            <div class="data-panel" id="metrics-panel">
+                <h2>Impact Metrics — Q4 2024</h2>
+                <div class="chart-container">
+                    <div style="flex-direction: column; display: flex; align-items: center; flex: 1;">
+                        <div class="chart-bar" style="height: 85%;" data-value="85%"></div>
+                        <div class="chart-label">Research<br>Adoption</div>
+                    </div>
+                    <div style="flex-direction: column; display: flex; align-items: center; flex: 1;">
+                        <div class="chart-bar" style="height: 92%;" data-value="92%"></div>
+                        <div class="chart-label">Policy<br>Alignment</div>
+                    </div>
+                    <div style="flex-direction: column; display: flex; align-items: center; flex: 1;">
+                        <div class="chart-bar" style="height: 78%;" data-value="78%"></div>
+                        <div class="chart-label">Capital<br>Efficiency</div>
+                    </div>
+                    <div style="flex-direction: column; display: flex; align-items: center; flex: 1;">
+                        <div class="chart-bar" style="height: 96%;" data-value="96%"></div>
+                        <div class="chart-label">Network<br>Growth</div>
+                    </div>
+                    <div style="flex-direction: column; display: flex; align-items: center; flex: 1;">
+                        <div class="chart-bar" style="height: 88%;" data-value="88%"></div>
+                        <div class="chart-label">Impact<br>Score</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="#" class="cta-button">Launch Full Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Cursor Highlight -->
+        <div class="cursor-highlight"></div>
+    </div>
+
+    <script>
+        const resourceModule = document.getElementById('resource-module');
+        const cursorHighlight = document.querySelector('.cursor-highlight');
+        const mainContent = document.querySelector('.main-content');
+
+        // Position cursor highlight over the Resource Allocation module
+        function positionCursor() {
+            const rect = resourceModule.getBoundingClientRect();
+            cursorHighlight.style.left = (rect.left + rect.width / 2 - 20) + 'px';
+            cursorHighlight.style.top = (rect.top + rect.height / 2 - 20) + 'px';
+            cursorHighlight.classList.add('active');
+        }
+
+        // Initial positioning
+        setTimeout(positionCursor, 500);
+
+        // Reposition on window resize
+        window.addEventListener('resize', positionCursor);
+
+        // Add subtle parallax effect to holographic elements
+        document.addEventListener('mousemove', (e) => {
+            const holo = document.querySelectorAll('.holo-element');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+
+            holo.forEach((el, i) => {
+                const speed = (i + 1) * 20;
+                el.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+            });
+        });
+
+        // Module hover effects
+        const modules = document.querySelectorAll('.module-card');
+        modules.forEach(module => {
+            module.addEventListener('mouseenter', function () {
+                if (!this.classList.contains('highlighted')) {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                }
+            });
+
+            module.addEventListener('mouseleave', function () {
+                if (!this.classList.contains('highlighted')) {
+                    this.style.transform = '';
+                }
+            });
+        });
+
+        // Click handler for Resource Allocation module
+        resourceModule.addEventListener('click', function () {
+            // Hide the metrics panel when navigating away
+            const metricsPanel = document.getElementById('metrics-panel');
+            if (metricsPanel) {
+                metricsPanel.style.display = 'none';
+            }
+
+            // Fade out current content
+            mainContent.style.transition = 'opacity 0.5s ease';
+            mainContent.style.opacity = '0';
+
+            setTimeout(() => {
+                // Replace content with infrastructure view
+                mainContent.innerHTML = `
+                    <div class="hero-section">
+                        <a href="#" class="back-button" onclick="location.reload(); return false;">
+                            ← Back to Dashboard
+                        </a>
+                        <h1>Resource Allocation</h1>
+                        <p>Access your infrastructure. Book facilities. Deploy compute power.</p>
+                    </div>
+
+                    <div class="infrastructure-grid">
+                        <div class="infra-card bio-card">
+                            <div class="infra-header">
+                                <div class="module-icon" style="width: 50px; height: 50px; font-size: 1.5rem;">🧬</div>
+                                <h3>For Bio-Founders</h3>
+                            </div>
+                            <p class="infra-description">Book time in our BL2 wet labs and cryo-storage facilities directly here.</p>
+                            
+                            <div class="facility-list">
+                                <div class="facility-item">
+                                    <div class="facility-icon">🔬</div>
+                                    <div class="facility-info">
+                                        <h4>BL2 Wet Lab - Zone A</h4>
+                                        <p>Full biosafety equipment, -80°C freezers</p>
+                                        <span class="availability available">Available Now</span>
+                                    </div>
+                                </div>
+                                <div class="facility-item">
+                                    <div class="facility-icon">❄️</div>
+                                    <div class="facility-info">
+                                        <h4>Cryo-Storage Facility</h4>
+                                        <p>Liquid nitrogen, automated sample tracking</p>
+                                        <span class="availability available">12 slots free</span>
+                                    </div>
+                                </div>
+                                <div class="facility-item">
+                                    <div class="facility-icon">⚗️</div>
+                                    <div class="facility-info">
+                                        <h4>BL2 Wet Lab - Zone B</h4>
+                                        <p>Cell culture, centrifuges, microscopy suite</p>
+                                        <span class="availability limited">Next: Thu 2PM</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="action-button bio-button">
+                                <span>📅</span> Book Lab Time
+                            </button>
+                        </div>
+
+                        <div class="infra-card ai-card">
+                            <div class="infra-header">
+                                <div class="module-icon" style="width: 50px; height: 50px; font-size: 1.5rem;">🤖</div>
+                                <h3>For AI-Founders</h3>
+                            </div>
+                            <p class="infra-description">One click grants you access to our secure, HIPAA-compliant GPU clusters for training your diagnostic models.</p>
+                            
+                            <div class="gpu-stats">
+                                <div class="gpu-stat-item">
+                                    <div class="gpu-icon">⚡</div>
+                                    <div>
+                                        <div class="gpu-value">48</div>
+                                        <div class="gpu-label">A100 GPUs Available</div>
+                                    </div>
+                                </div>
+                                <div class="gpu-stat-item">
+                                    <div class="gpu-icon">🔒</div>
+                                    <div>
+                                        <div class="gpu-value">100%</div>
+                                        <div class="gpu-label">HIPAA Compliant</div>
+                                    </div>
+                                </div>
+                                <div class="gpu-stat-item">
+                                    <div class="gpu-icon">💾</div>
+                                    <div>
+                                        <div class="gpu-value">2.5 PB</div>
+                                        <div class="gpu-label">Encrypted Storage</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="cluster-options">
+                                <div class="cluster-option">
+                                    <input type="radio" name="cluster" id="cluster1" checked>
+                                    <label for="cluster1">
+                                        <strong>Standard Cluster</strong>
+                                        <span>8x A100 GPUs • 640GB VRAM</span>
+                                    </label>
+                                </div>
+                                <div class="cluster-option">
+                                    <input type="radio" name="cluster" id="cluster2">
+                                    <label for="cluster2">
+                                        <strong>High-Performance Cluster</strong>
+                                        <span>16x A100 GPUs • 1.28TB VRAM</span>
+                                    </label>
+                                </div>
+                                <div class="cluster-option">
+                                    <input type="radio" name="cluster" id="cluster3">
+                                    <label for="cluster3">
+                                        <strong>Enterprise Cluster</strong>
+                                        <span>32x A100 GPUs • 2.56TB VRAM</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button class="action-button ai-button">
+                                <span>🚀</span> Deploy GPU Cluster
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="additional-resources">
+                        <h2>Additional Resources</h2>
+                        <div class="resource-cards">
+                            <div class="resource-item">
+                                <span class="resource-emoji">📚</span>
+                                <h4>Expert Network</h4>
+                                <p>Connect with advisors and mentors</p>
+                            </div>
+                            <div class="resource-item">
+                                <span class="resource-emoji">💰</span>
+                                <h4>Capital Access</h4>
+                                <p>Apply for co-investment funding</p>
+                            </div>
+                            <div class="resource-item">
+                                <span class="resource-emoji">🎯</span>
+                                <h4>Strategic Tools</h4>
+                                <p>Digital platform for project management</p>
+                            </div>
+                            <div class="resource-item">
+                                <span class="resource-emoji">🤝</span>
+                                <h4>Partner Network</h4>
+                                <p>Access to industry connections</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add styles for new content
+                const style = document.createElement('style');
+                style.textContent = `
+                    .back-button {
+                        display: inline-flex;
+                        align-items: center;
+                        color: #013833;
+                        text-decoration: none;
+                        font-weight: 500;
+                        margin-bottom: 1.5rem;
+                        transition: transform 0.3s ease;
+                    }
+
+                    .back-button:hover {
+                        transform: translateX(-5px);
+                    }
+
+                    .infrastructure-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+                        gap: 2rem;
+                        margin-bottom: 3rem;
+                    }
+
+                    .infra-card {
+                        background: rgba(255, 255, 255, 0.7);
+                        border: 2px solid rgba(1, 56, 51, 0.15);
+                        border-radius: 20px;
+                        padding: 2.5rem;
+                        animation: slideIn 0.6s ease-out;
+                    }
+
+                    @keyframes slideIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(30px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+
+                    .infra-header {
+                        display: flex;
+                        align-items: center;
+                        gap: 1rem;
+                        margin-bottom: 1rem;
+                    }
+
+                    .infra-header h3 {
+                        font-size: 1.6rem;
+                        color: #013833;
+                        margin: 0;
+                    }
+
+                    .infra-description {
+                        color: rgba(1, 56, 51, 0.7);
+                        line-height: 1.6;
+                        margin-bottom: 2rem;
+                        font-size: 1.05rem;
+                    }
+
+                    .facility-list {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1rem;
+                        margin-bottom: 2rem;
+                    }
+
+                    .facility-item {
+                        display: flex;
+                        gap: 1rem;
+                        padding: 1.25rem;
+                        background: rgba(1, 56, 51, 0.03);
+                        border: 1px solid rgba(1, 56, 51, 0.1);
+                        border-radius: 12px;
+                        transition: all 0.3s ease;
+                    }
+
+                    .facility-item:hover {
+                        background: rgba(1, 56, 51, 0.05);
+                        border-color: #013833;
+                        transform: translateX(5px);
+                    }
+
+                    .facility-icon {
+                        font-size: 2rem;
+                        width: 50px;
+                        height: 50px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: rgba(1, 56, 51, 0.08);
+                        border-radius: 10px;
+                    }
+
+                    .facility-info h4 {
+                        color: #013833;
+                        margin: 0 0 0.3rem 0;
+                        font-size: 1.1rem;
+                    }
+
+                    .facility-info p {
+                        color: rgba(1, 56, 51, 0.6);
+                        font-size: 0.9rem;
+                        margin: 0 0 0.5rem 0;
+                    }
+
+                    .availability {
+                        display: inline-block;
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 20px;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                    }
+
+                    .availability.available {
+                        background: rgba(0, 255, 136, 0.2);
+                        color: #013833;
+                    }
+
+                    .availability.limited {
+                        background: rgba(255, 193, 7, 0.2);
+                        color: #8b6914;
+                    }
+
+                    .gpu-stats {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                        gap: 1rem;
+                        margin-bottom: 2rem;
+                    }
+
+                    .gpu-stat-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        padding: 1rem;
+                        background: rgba(1, 56, 51, 0.03);
+                        border-radius: 12px;
+                    }
+
+                    .gpu-icon {
+                        font-size: 1.5rem;
+                    }
+
+                    .gpu-value {
+                        font-size: 1.5rem;
+                        font-weight: 700;
+                        color: #013833;
+                    }
+
+                    .gpu-label {
+                        font-size: 0.8rem;
+                        color: rgba(1, 56, 51, 0.6);
+                    }
+
+                    .cluster-options {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.75rem;
+                        margin-bottom: 2rem;
+                    }
+
+                    .cluster-option {
+                        position: relative;
+                    }
+
+                    .cluster-option input[type="radio"] {
+                        position: absolute;
+                        opacity: 0;
+                    }
+
+                    .cluster-option label {
+                        display: block;
+                        padding: 1rem 1.25rem;
+                        background: rgba(1, 56, 51, 0.03);
+                        border: 2px solid rgba(1, 56, 51, 0.1);
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+
+                    .cluster-option label strong {
+                        display: block;
+                        color: #013833;
+                        margin-bottom: 0.25rem;
+                    }
+
+                    .cluster-option label span {
+                        color: rgba(1, 56, 51, 0.6);
+                        font-size: 0.9rem;
+                    }
+
+                    .cluster-option input[type="radio"]:checked + label {
+                        background: rgba(1, 56, 51, 0.08);
+                        border-color: #013833;
+                        box-shadow: 0 0 0 3px rgba(1, 56, 51, 0.1);
+                    }
+
+                    .cluster-option label:hover {
+                        border-color: #013833;
+                    }
+
+                    .action-button {
+                        width: 100%;
+                        padding: 1.25rem 2rem;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0.5rem;
+                    }
+
+                    .bio-button {
+                        background: linear-gradient(135deg, #013833, #025f56);
+                        color: #fffef1;
+                        box-shadow: 0 10px 30px rgba(1, 56, 51, 0.3);
+                    }
+
+                    .bio-button:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 15px 40px rgba(1, 56, 51, 0.4);
+                    }
+
+                    .ai-button {
+                        background: linear-gradient(135deg, #00ff88, #00cc6e);
+                        color: #013833;
+                        box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+                    }
+
+                    .ai-button:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 15px 40px rgba(0, 255, 136, 0.4);
+                    }
+
+                    .additional-resources {
+                        background: rgba(255, 255, 255, 0.6);
+                        border: 2px solid rgba(1, 56, 51, 0.1);
+                        border-radius: 20px;
+                        padding: 2.5rem;
+                        animation: slideIn 0.8s ease-out;
+                    }
+
+                    .additional-resources h2 {
+                        font-size: 1.8rem;
+                        color: #013833;
+                        margin-bottom: 1.5rem;
+                    }
+
+                    .resource-cards {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 1.5rem;
+                    }
+
+                    .resource-item {
+                        padding: 1.5rem;
+                        background: rgba(1, 56, 51, 0.03);
+                        border-radius: 12px;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                    }
+
+                    .resource-item:hover {
+                        background: rgba(1, 56, 51, 0.06);
+                        transform: translateY(-5px);
+                    }
+
+                    .resource-emoji {
+                        font-size: 2.5rem;
+                        display: block;
+                        margin-bottom: 0.75rem;
+                    }
+
+                    .resource-item h4 {
+                        color: #013833;
+                        margin: 0 0 0.5rem 0;
+                    }
+
+                    .resource-item p {
+                        color: rgba(1, 56, 51, 0.6);
+                        font-size: 0.9rem;
+                        margin: 0;
+                    }
+
+                    @media (max-width: 768px) {
+                        .infrastructure-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // Fade in new content
+                mainContent.style.opacity = '1';
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>
